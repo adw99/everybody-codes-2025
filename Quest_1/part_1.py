@@ -2,8 +2,6 @@ import re
 import sys
 
 
-debug = False
-
 def parse_move(move:str):
     rule_rex = re.compile("([RL])(\\d*)")
     res = rule_rex.search(move)
@@ -27,9 +25,7 @@ def part1( names_str: str, moves_str: str) -> str:
 
 if __name__ == '__main__':
     print(f"*** Everybody Codes 2025, Part 1 ***\n")
-    if(len(sys.argv) >=3 and sys.argv[2] == 'debug'):
-        debug = True
-    fname = sys.argv[1] if len(sys.argv) >=2 else 'sample.txt'
+    fname = sys.argv[1] if len(sys.argv) >=2 else 'sample1.txt'
     df = open(fname, "r")
     lines = df.read().splitlines()
     part1( lines[0], lines[1] )
