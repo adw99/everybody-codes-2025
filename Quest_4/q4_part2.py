@@ -13,7 +13,7 @@ def solution(lines:List[str]) -> int:
         if prev != -1:
             ratio = ratio * (prev/g)
         prev = g
-    print(f"Total ration: {ratio}")
+    print(f"Total ratio: {ratio}")
     return math.ceil(rot / ratio)
 
 if __name__ == '__main__':
