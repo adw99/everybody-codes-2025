@@ -17,7 +17,6 @@ def pack_crate(crates:List[int]) -> List[int]:
 
 def part1(crates:List[int]) -> int:
     crates.sort()
-    pack_list = []
     while len(crates)>0:
         pack = pack_crate(crates)
         for p in pack:
