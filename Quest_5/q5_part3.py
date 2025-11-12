@@ -1,4 +1,5 @@
 import sys
+import functools
 from typing import List
 
 
@@ -13,7 +14,7 @@ def nas(x:int) -> str:
     else:
         return str(x)
 
-def decode_spine(nums:List[int]) -> str:
+def decode_spine(nums:List[int]):
     print(f"Nums: {nums}")
 
     segments = []
@@ -38,10 +39,36 @@ def decode_spine(nums:List[int]) -> str:
     print(f"Spine segments: {len(segments)}")       
     result = ''
     for s in segments:
-        print(f" {nas(s["l"])}..{nas(s["spine"])}..{nas(s["r"])}")
+        lvl = ('' if s['l']==None else str(s['l'])) + str(s['spine']) + ('' if s['r']==None else str(s['r']))
+        print(f" {nas(s["l"])}..{nas(s["spine"])}..{nas(s["r"])}: {lvl}")
+        s['level'] = int(lvl)
         result += str(s["spine"])
-    return result
+    return (int(result),segments)
 
+def sword_compare(a,b):
+    va = -1
+    vb = -1
+    if a['quality'] != b['quality']:
+        va = a['quality']
+        vb = b['quality']
+    else:
+        for i in range(len(a['row_scores'])):
+            if a['row_scores'][i] != b['row_scores'][i]:
+                va = a['row_scores'][i]
+                vb = b['row_scores'][i]
+                print(f"{va} vs {vb}")
+                break
+    if va == vb:
+        va = a['id']
+        vb = b['id']
+
+    if va < vb:
+        return -1
+    elif va>vb:
+        return 1
+    else:
+        return 0
+    
 def solution(lines:List[str]) -> int:
     swords = []
     print(f"Lines: {len(lines)}")
@@ -52,22 +79,25 @@ def solution(lines:List[str]) -> int:
         id = int(parts[0])
         nums = [ int(x) for x in parts[1].split(',')]
         print(f">> {id}")
+        (q,s) = decode_spine(nums)
+        row_scores = [seg['level'] for seg in s]
         swords.append({
             "id": id,
-            "quality": int(decode_spine(nums))
+            "quality": q,
+            "segments": s,
+            "row_scores": row_scores
         })
-    sorted_swords = sorted(swords, key=lambda x: x['quality'])
-    min = sorted_swords[0]
-    max = sorted_swords[-1]
-    print(f"Swords: {len(sorted_swords)}")
-    print(f"Min quality: {min['id']} / {min['quality']}")
-    print(f"Max quality: {max['id']} / {max['quality']}")
-    result = max['quality'] - min['quality']
-    return result
+    sorted_swords = sorted(swords, key=functools.cmp_to_key(sword_compare), reverse=True)
+    for ss in sorted_swords:
+        print(f"## {ss['id']}")
+    checksum = 0
+    for i in range(len(sorted_swords)):
+        checksum += sorted_swords[i]['id'] * (i+1)
+    return checksum
 
 
 if __name__ == '__main__':
-    print(f"*** Everybody Codes 2025, Quest 5, Part 2 ***\n")
+    print(f"*** Everybody Codes 2025, Quest 5, Part 3 ***\n")
     fname = sys.argv[1] if len(sys.argv) >=2 else 'sample1.txt'
     df = open(fname, "r")
     lines = df.read().splitlines()
