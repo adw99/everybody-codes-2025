@@ -1,7 +1,4 @@
 import sys
-from typing import List,Tuple
-from collections import Counter
-from functools import cache
 
 def count_common(str1 : str, str2: str) -> int:
     count = 0

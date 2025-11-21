@@ -1,7 +1,5 @@
 import sys
 from typing import List,Tuple
-from collections import Counter
-from functools import cache
 
 def cmp_dna(dna: dict, c: int, p1: int, p2:int) -> bool: 
     child = dna[c]
@@ -16,7 +14,6 @@ def find_child(dna: dict,x:int,y:int,z:int) -> int:
     c1 = cmp_dna(dna,x,y,z)
     c2 = cmp_dna(dna,y,x,z)
     c3 = cmp_dna(dna,z,x,y)
-    # print(f"Results: {c1} {c2} {c3}")
     return (x, [y,z]) if c1 else (y, [x,z]) if c2 else (z, [x,y]) if c3 else (-1,[])
 
 def new_node(id:int) -> dict:
@@ -50,7 +47,6 @@ def find_parents(dna:dict) -> dict:
                     if child != -1:
                         count += 1
                         update_nodes(results,child,parents)
-                        print(f"{x},{y},{z}")
 
     print(f">> {count} child/parents found")
     return results
@@ -71,12 +67,10 @@ def find_family(ids: List[int], nodes: dict) -> List[int]:
     start = -1
     opts = list(nodes)
     opts.sort()
-    print(f"****> {opts}")
     for idx in range(len(ids)):
         start = ids[idx]
         if start in opts:
             break
-    print(f"Start> {start}")
     if not start in opts:
         return []
     
@@ -106,7 +100,6 @@ def solution(dna: dict) -> int:
         f = find_family(ids, graph_map)
         if len(f)>0:
             families.append(f)
-            print(f"Family -> {f}")
         else:
             break
 

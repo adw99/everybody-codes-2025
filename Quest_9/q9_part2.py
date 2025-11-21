@@ -1,7 +1,5 @@
 import sys
 from typing import List,Tuple
-from collections import Counter
-from functools import cache
 
 def count_common(str1 : str, str2: str) -> int:
     count = 0
@@ -13,7 +11,6 @@ def count_common(str1 : str, str2: str) -> int:
         else:
             str_cmp += ' '
 
-    # print(f"{str1}\r\n{str2}\r\n{str_cmp}\r\n{count}")
     return count
 
 def calc_similarity(dna: dict, child:int, p1: int, p2: int) -> int:
@@ -34,7 +31,6 @@ def find_child(dna: dict,x:int,y:int,z:int) -> int:
     c1 = cmp_dna(dna,x,y,z)
     c2 = cmp_dna(dna,y,x,z)
     c3 = cmp_dna(dna,z,x,y)
-    # print(f"Results: {c1} {c2} {c3}")
     return (x, [y,z]) if c1 else (y, [x,z]) if c2 else (z, [x,y]) if c3 else (-1,[])
 
 
