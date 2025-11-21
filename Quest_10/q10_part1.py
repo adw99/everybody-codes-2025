@@ -65,4 +65,4 @@ if __name__ == '__main__':
     print(f"Dragon starts at: {start}")
     result = solution(start,moves,grid)
     print(f"Solution: {result}")
-    print_grid(grid)
+    # print_grid(grid)
