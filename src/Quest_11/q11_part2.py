@@ -51,7 +51,7 @@ def balance(cols: List):
     print(f"Round {round}, {moves} moves: {print_cols(cols)} {checksum(cols)}")
 
 if __name__ == '__main__':
-    print(f"*** Everybody Codes 2025, Quest 11, Part 1 ***\n")
+    print(f"*** Everybody Codes 2025, Quest 11, Part 2 ***\n")
     fname = sys.argv[1] if len(sys.argv) >=2 else 'sample1.txt'
     df = open(fname, "r")
     lines = df.read().splitlines()
