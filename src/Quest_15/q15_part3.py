@@ -4,6 +4,7 @@ from collections import deque
 from functools import lru_cache,cache
 import math
 from collections import defaultdict
+from queue import PriorityQueue
 
 debug = False
 
@@ -147,117 +148,63 @@ class SparseGrid():
                 return True
         return False
 
+    def is_wall(self,x,y):
+        horz = vert = False
 
+        horz = self.is_horz_wall(x,y)
+        if not horz:
+            vert = self.is_vert_wall(x,y)
 
-def solve(sg:SparseGrid) ->int:
-    result = split(sg,sg.start,-1,0)
-    return result
+        return horz or vert
 
-def split(sg:SparseGrid, pos:Tuple[int,int], dir:int, dist:int) -> int:
-    arb_limit = sg.xmax + sg.ymax
-    if dist>arb_limit:
-        return math.inf
-    length = math.inf
-    if debug:
-        print(f">> split{pos}")
-    pause()
-    # Try every direction that is not a wall:
-    (sx,sy) = pos
-    opp_dir = (dir + 2) % len(sg.movement) if dir>0 else -1
-    for i in range(len(sg.movement)):
-        if i != opp_dir:
-            (dx,dy) = sg.movement[i]
-            if sg.is_horz_wall(sx+dx,sy+dy):
-                d1 = wall_hug(sg,(sx,sy+1),i,0,dist+1)
-                d2 = wall_hug(sg,(sx,sy-1),i,2,dist+1)
-                length = min([length,d1,d2])
-            elif sg.is_vert_wall(sx+dx,sy+dy):
-                d1 = wall_hug(sg,(sx+1,sy),i,3,dist+1)
-                d2 = wall_hug(sg,(sx-1,sy),i,1,dist+1)
-                length = min([length,d1,d2])
-            else:
-                dl = move(sg, (sx,sy), i, dist)
-                # print(f"solve {sx},{sy}({i}):{dl}")
-                if dl < length:
-                    length = dl
-            
-    return length+dist
+def pos_key(pos: Tuple[int,int]) -> str:
+    return str(pos[0]) + "_" + str(pos[1])
 
-def wall_hug( sg:SparseGrid, pos:Tuple[int,int], dir: int, wall_side: int, dist: int):
-    moves = 0
-    (x,y) = pos
-    if not ( 0 <= x <= sg.xmax and 0<=y<=sg.ymax):
-        return math.inf
-    (dx,dy) = sg.movement[dir]
-    if debug:
-        print(f">> wall_hug({x},{y})")
-    pause()
+def manhattan_dist(a:Tuple[int,int], b:Tuple[int,int]) -> int:
+    return abs(a[0]-b[0]) + abs(a[1]-b[1])
 
-    stopped = False
-    while not stopped:
-        x += dx
-        y += dy
-        moves += 1
+def equal_points(a:Tuple[int,int], b:Tuple[int,int]) -> bool:
+    return a[0] == b[0] and a[1] == b[1]
 
-        # we stop when the wall we were hugging ends, or the space in front of us is blocked
-        # if we were moving verticall check for horizontal walls in next square, and vice versa
-        nx = x + dx
-        ny = y + dy
-        if nx<0 or nx>sg.xmax or ny<0 or ny>sg.ymax:
-            stopped = True
-        else:
-            if dir % 2 == 0:
-                stopped = sg.is_horz_wall(x+dx,y+dy)
-            else:
-                stopped = sg.is_horz_wall(x+dx,y+dy)
+def solve_astar(sg:SparseGrid) ->int:
+    (sx,sy) = sg.start
+    (ex,ey) = sg.end
+    print( f"{sx},{sy} -> {ex},{ey}")
 
-        if not stopped:
-            # check if our hugged wall ended
-            (dwx,dwy) = sg.movement[wall_side]
-            if dir % 2 == 0:
-                stopped = not sg.is_vert_wall(x+dwx,y+dwy)
-            else:
-                stopped = not sg.is_horz_wall(x+dwx,y+dwy)
-    # are we next to the end?
-    if sg.next_to_end(x,y):
-        return dist + moves + 1
-    else:
-        return split(sg,(x,y),dir,dist+moves)
+    open_set = PriorityQueue()
+    open_set.put( ((sx,sy),0) )
 
-def pause():
-    # input("...")
-    print(f"",end="")
+    came_from = {}
 
-def move( sg:SparseGrid, pos:Tuple[int,int], dir: int, dist: int):
-    (x,y) = pos
-    (dx,dy) = sg.movement[dir]
+    g_score = defaultdict(lambda: float("inf"))
+    g_score[pos_key(sg.start)] = 0
 
-    if debug:
-        print(f"move> {x},{y}({dir})")
-    pause()
+    f_score = defaultdict(lambda: float("inf"))
+    f_score[pos_key(sg.start)] = manhattan_dist(sg.start,sg.end)
 
-    moves = 0
-    wall = False
-    found_end = False
-    vert_move = dy != 0
-    while not wall and not found_end:
-        moves += 1
-        if vert_move:
-            y += dy
-            wall = sg.is_horz_wall(x,y)
-        else:
-            x += dx
-            wall = sg.is_vert_wall(x,y)
-        found_end = sg.next_to_end(x,y)
-        # print(f"{x},{y} ({found_end})")
-        if x>sg.xmax or y>sg.ymax or x<0 or y<0:
-            # we've missed a wall and gone outside the grid, end this branch
-            return(math.inf)
-    d2 = moves + dist
-    if found_end:
-        return(d2+1)
-    md = split(sg,(x,y),dir,d2)
-    return md
+    while open_set.qsize()>0:
+        (current,c_score) = open_set.get()
+        if equal_points(current,sg.end):
+            return c_score
+        (x,y) = current
+        for m in sg.movement:
+            (dx,dy) = m
+            nx = x + dx
+            ny = y + dy
+            n_score = c_score + 1
+            p_key = pos_key( (nx,ny) )
+            if not sg.is_wall(nx,ny):
+                if n_score < g_score[p_key]:
+                    came_from[p_key] = current
+                    g_score[p_key] = n_score
+                    f_score[p_key] = n_score + manhattan_dist( (nx,ny), sg.end )
+                    if (nx,ny) not in open_set.queue:
+                        open_set.put( ((nx,ny),n_score) )
+            elif equal_points( (nx,ny), sg.end):
+                return n_score
+
+    # Not supposed to get here
+    return math.inf
 
 if __name__ == '__main__':
     print(f"*** Everybody Codes 2025, Quest 15, Part 3 ***\n")
@@ -273,12 +220,9 @@ if __name__ == '__main__':
 
     sg = SparseGrid(walls)
 
-    (sx,sy) = sg.start
-    (ex,ey) = sg.end
-    print( f"{sx},{sy} -> {ex},{ey}")
 
-
-    length = solve(sg)
+    length = math.inf
+    length = solve_astar(sg)
 
     print(f"Shortest distance: {length}")
 
