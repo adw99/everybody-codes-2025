@@ -3,7 +3,9 @@ from typing import List,Tuple
 from grid import Grid
 from collections import deque
 from functools import lru_cache,cache
+import math
 
+debug = False
 
 def build_walls(walls: List[str]) -> Grid:
 
@@ -15,7 +17,7 @@ def build_walls(walls: List[str]) -> Grid:
     path = [(x,y,'S')] # Lets begin at the beginning - Frank Turner
     for w in walls:
         cd = w[0]
-        d = int(w[1])
+        d = int(w[1:])
         dir += change_dir[cd] # turn right or left
         dir = dir % len(movement)
         (dx,dy) = movement[dir]
@@ -82,7 +84,9 @@ def print_grid2(grid:Grid):
             if s in "SE#":
                 print( f"{s}{s}", end="" )
             else:
-                if d > 99:
+                if d == math.inf:
+                    print('..', end="")
+                elif d > 99:
                     print('++',end="")
                 else:
                     print( f"{d:02d}", end="")
@@ -98,13 +102,12 @@ def dijkstra(g:Grid,start:Tuple[int,int],end:Tuple[int,int])->int:
     for x in range(g.x()):
         for y in range(g.y()):
             s = g.get(x,y)
-            grid.set(x,y,(s,99999))
+            grid.set(x,y,(s,math.inf))
     # start is zero
     (x,y) = start
     (ex,ey) = end
 
     grid.set(x,y,('S',0))
-    print(f">> {grid.get(ex,ey)}")
 
     neighbours = [(1,0),(-1,0),(0,1),(0,-1)]
     queue = deque()
@@ -131,25 +134,30 @@ def dijkstra(g:Grid,start:Tuple[int,int],end:Tuple[int,int])->int:
     (ex,ey) = end
     (_,result) = grid.get(ex,ey)
 
-    print_grid2(grid)
-    print(f">> {grid.get(ex,ey)}")
+    # if debug:
+    #     print_grid2(grid)
 
     return result
 
 if __name__ == '__main__':
     print(f"*** Everybody Codes 2025, Quest 15, Part 1 ***\n")
     fname = sys.argv[1] if len(sys.argv) >=2 else 'sample1.txt'
+    if len(sys.argv) >=3:
+        debug = True
+
     df = open(fname, "r")
     walls = df.read().splitlines()[0].split(',')
-    print(f"{walls  }")
+    if debug:
+        print(f"{walls  }")
 
     grid = build_walls(walls)
-    print_grid(grid)
+    if debug:
+        print_grid(grid)
+    print(f"Grid is {grid.x()} by {grid.y()}")
     (start,end) = find_start_end(grid)
     print(f">> {start} to {end}")
 
     length = dijkstra(grid,start,end)
-
 
     print(f"Shortest distance: {length}")
 
